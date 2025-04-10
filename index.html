@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Zone Wise Generation Calculator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -76,6 +76,12 @@
       font-size: 16px;
       cursor: pointer;
     }
+    .csv-button {
+      background-color: #007bff;
+    }
+    .reset-button {
+      background-color: #dc3545;
+    }
     .output {
       margin-top: 20px;
     }
@@ -85,12 +91,6 @@
       margin: 10px 0;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .csv-button {
-      background-color: #007bff;
-    }
-    .reset-button {
-      background-color: #dc3545;
     }
     canvas {
       margin-top: 20px;
@@ -123,7 +123,7 @@
     <div class="theme-switch">
       <label>Light Mode <input type="checkbox" id="themeToggle"></label>
     </div>
-    <h2>Zone Wise Generation Calculator 🌙</h2>
+    <h2 id="headerTitle">Zone Wise Generation Calculator 🌙</h2>
     <form id="calculatorForm">
       <div class="row">
         <div class="column">
@@ -170,17 +170,37 @@
       ];
 
       const zones = ['Zone A', 'Zone B', 'Zone C', 'Zone D'];
-      resultData = [['Zone', 'Value']];
+      resultData = [['Zone', 'Final Value']];
       let outputHTML = '<h4>Final Output Zone-wise:</h4>';
+      let total = 0, totalWheelingLoss = 0, totalTransmissionLoss = 0;
 
       for (let i = 0; i < 4; i++) {
         let diff = h1[i] - h2[i];
-        let after75 = diff * 0.925;
-        let after318 = after75 * 0.9682;
-        let final = after318 * 60;
+        let wheelingLoss = diff * 0.925;
+        let transmissionLoss = wheelingLoss * 0.9682;
+        let final = transmissionLoss * 60;
+
+        total += final;
+        totalWheelingLoss += wheelingLoss;
+        totalTransmissionLoss += transmissionLoss;
+
         resultData.push([zones[i], final.toFixed(2)]);
-        outputHTML += `<div class="output-card"><strong>${zones[i]}:</strong> ${final.toFixed(2)}</div>`;
+        outputHTML += `
+          <div class="output-card">
+            <strong>${zones[i]}</strong><br>
+            Difference: ${diff.toFixed(2)}<br>
+            After Wheeling Loss (×0.925): ${wheelingLoss.toFixed(2)}<br>
+            After Transmission Loss (×0.9682): ${transmissionLoss.toFixed(2)}<br>
+            <strong>Final Output ×60: ${final.toFixed(2)}</strong>
+          </div>`;
       }
+
+      outputHTML += `
+        <div class="output-card" style="background-color:#1b5e20">
+          <strong>Total Wheeling Loss (All Zones): ${totalWheelingLoss.toFixed(2)}</strong><br>
+          <strong>Total Transmission Loss (All Zones): ${totalTransmissionLoss.toFixed(2)}</strong><br>
+          <strong>Total Final Output (All Zones): ${total.toFixed(2)}</strong>
+        </div>`;
 
       document.getElementById('output').innerHTML = outputHTML;
       renderChart(zones, resultData.slice(1).map(row => row[1]));
@@ -210,7 +230,6 @@
     function renderChart(labels, data) {
       const ctx = document.getElementById('zoneChart').getContext('2d');
       if (chart) chart.destroy();
-
       chart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -234,11 +253,20 @@
       });
     }
 
-    // Dark/Light mode toggle
     const themeToggle = document.getElementById('themeToggle');
+    const headerTitle = document.getElementById('headerTitle');
+
+    function updateThemeIcon() {
+      const isLight = document.documentElement.classList.contains('light');
+      headerTitle.innerHTML = `Zone Wise Generation Calculator ${isLight ? '☀️' : '🌙'}`;
+    }
+
     themeToggle.addEventListener('change', () => {
       document.documentElement.classList.toggle('light');
+      updateThemeIcon();
     });
+
+    updateThemeIcon();
   </script>
 </body>
 </html>
